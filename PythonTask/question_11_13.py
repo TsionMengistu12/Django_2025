@@ -11,8 +11,11 @@ print(sqrt(num))
 
 ##### question number 13
 
-with open("log.txt") as file:
-    con = file.read()
+try:
+    with open("log.txt") as file:
+        con = file.read()
+except FileNotFoundError:
+    print("File is not found")
 
 print(con.upper())
 

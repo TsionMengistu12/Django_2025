@@ -11,7 +11,7 @@ def fizzbuzz(n):
         elif i % 5 == 0:
             ans.append("Buzz")
         elif i % 3 == 0:
-            ans.append("Fizz")
+            ans.append("Fizz")                                                                                                                                          
         else:
             ans.append(str(i))
     return ans
