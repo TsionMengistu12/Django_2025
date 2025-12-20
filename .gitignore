@@ -5,3 +5,8 @@ __pycache__/
 
 # JSON data files (runtime data)
 todos.json
+
+# Virtual environments
+venv/
+env/
+.venv/
