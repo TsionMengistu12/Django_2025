@@ -168,7 +168,7 @@ def get_book(request, id):
 
 # POST create a new book
 @csrf_exempt
-def Create_book(request):
+def create_book(request):
     if request.method == "POST":
         # convert JSON to python dict
         body = json.loads(request.body)
