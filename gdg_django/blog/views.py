@@ -17,12 +17,13 @@ class Welcome(View):
 
 
 # FBV that fetches posts and return their titles
-def AllPosts(request):
-    posts = Post.objects.all()
+class AllPosts(View):
+    def AllPosts(request):
+        posts = Post.objects.all()
 
-    titles = ""
+        titles = ""
 
-    for post in posts:
-        titles += post.title + "<br>"
+        for post in posts:
+            titles += post.title + "<br>"
 
-    return HttpResponse(titles)
+        return HttpResponse(titles)
