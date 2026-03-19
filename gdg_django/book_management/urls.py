@@ -15,5 +15,11 @@ urlpatterns = [
     path("books/<int:id>/", views.get_book),
     path("books/create/", views.create_book),
     path("books/<int:id>/update/", views.update_book),
-    path("books/<int:id>/delete", views.delete_book),
+    path("books/<int:id>/delete/", views.delete_book),
+    # category related actions
+    path("category/", views.get_categories),
+    path("category/<int:id>/", views.get_category),
+    path("category/create/", views.create_category),
+    path("category/<int:id>/update/", views.update_category),
+    path("category/<int:id>/delete/", views.delete_category),
 ]

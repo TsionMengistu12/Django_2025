@@ -2,7 +2,7 @@ from django.shortcuts import render
 from .models import Author, Book, Category
 from django.http import JsonResponse
 import json
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.views.decorators.csrf import csrf_exempt
 
 ### Author Endpoints
@@ -238,3 +238,214 @@ def delete_book(request, id):
 
         except Book.DoesNotExist:
             return JsonResponse({"error": "Book not found"}, status=404)
+
+
+### Category endpoints
+
+
+# GET categories
+def get_categories(request):
+    categories = Category.objects.all()
+
+    data = []
+    for c in categories:
+        data.append({"id": c.id, "name": c.c_name})
+
+    return JsonResponse(data, safe=False)
+
+
+# GET category by id
+def get_category(request, id):
+    try:
+        category = Category.objects.get(id=id)
+        data = {"id": category.id, "name": category.c_name}
+        return JsonResponse(data)
+
+    except Category.DoesNotExist:
+        return JsonResponse({"error": "Category doesn't exist"}, status=404)
+
+
+# POST create category
+@csrf_exempt
+def create_category(request):
+    if request.method == "POST":
+
+        body = json.loads(request.body)
+        try:
+            category = Category.objects.create(c_name=body.get("c_name"))
+            return JsonResponse(
+                {"message": "category successfully created", "id": category.id}
+            )
+
+        except Category.DoesNotExist:
+            return JsonResponse({"error": "category doesn't exist"}, status=404)
+
+
+# PUT update category
+@csrf_exempt
+def update_category(request, id):
+    if request.method == "PUT":
+        body = json.loads(request.body)
+
+        try:
+            category = Category.objects.get(id=id)
+
+            category.c_name = body.get("c_name", category.c_name)
+
+            category.save()
+            return JsonResponse({"message": "category sucessfully updated"})
+
+        except Category.DoesNotExist:
+            return JsonResponse({"error": "category doesn't exist"})
+
+
+# DELETE category
+@csrf_exempt
+def delete_category(request, id):
+    if request.method == "DELETE":
+        try:
+            category = Category.objects.get(id=id)
+            category.delete()
+
+            return JsonResponse({"message": "Category successfully deleted"})
+
+        except Category.DoesNotExist:
+            return JsonResponse({"error": "Category not found"}, status=404)
+
+
+# GET all books under a category
+def get_category_books(request, id):
+    try:
+        category = Category.objects.get(id=id)
+
+        books = Book.objects.filter(categories=category)
+        data = []
+        for book in books:
+            data.append(
+                {
+                    "id": book.id,
+                    "title": book.title,
+                    "author": book.author.name,
+                    "available": book.available,
+                }
+            )
+        return JsonResponse(data, safe=False)
+
+    except Category.DoesNotExist:
+        return JsonResponse({"error": "Category not found"}, status=404)
+
+
+### Filtering and Functional endpoints
+
+
+# GET books by specific author
+def get_book_by_author(request, author_id):
+    try:
+        books = (
+            Book.objects.select_related("author")
+            .prefetch_related("categories")
+            .filter(author_id=author_id)
+        )
+        data = []
+        for book in books:
+            data.append(
+                {
+                    "id": book.id,
+                    "title": book.title,
+                    "author": book.author.name,
+                    "price": str(book.price),
+                    "available": book.available,
+                }
+            )
+        return JsonResponse(data, safe=False)
+
+    except Exception:
+        return JsonResponse({"error": "something went wrong"}, status=404)
+
+
+# GET books by specific category
+def get_book_by_category(request, category_id):
+    try:
+        books = (
+            Book.objects.select_related("author")
+            .prefetch_related("categories")
+            .filter(category_id=category_id)
+        )
+        data = []
+        for book in books:
+            data.append(
+                {
+                    "id": book.id,
+                    "title": book.title,
+                    "author": book.author.name,
+                    "price": str(book.price),
+                    "available": book.available,
+                }
+            )
+        return JsonResponse(data, safe=False)
+
+    except Exception:
+        return JsonResponse({"error": "something went wrong"}, status=404)
+
+
+# GET search books by title
+def search_book_title(request):
+    query = request.GET.get("q")
+
+    books = (
+        Book.objects.select_related("author")
+        .prefetch_related("categories")
+        .filter(title__icontains=query)
+    )
+    for book in books:
+        data = [
+            {
+                "id": book.id,
+                "title": book.title,
+            }
+        ]
+    return JsonResponse(data, safe=False, status=200)
+
+
+# GET filter books with price
+def filter_price(request):
+    min_price = request.GET.get("min")
+    max_price = request.GET.get("max")
+
+    books = (
+        Book.objects.select_related("author")
+        .prefetch_related("categories")
+        .filter(query=min_price, query=max_price)
+    )
+
+    data = [
+        {"id": book.id, "title": book.title, "price": str(book.price)} for book in books
+    ]
+    return JsonResponse(data, safe=False, status=200)
+
+
+# GET available books
+def available_books(request):
+    books = (
+        Book.objects.select_for_update("author")
+        .prefetch_related("categories")
+        .filter(available=True)
+    )
+
+    data = [
+        {"id": book.id, "title": book.title, "price": str(book.price)} for book in books
+    ]
+    return JsonResponse(data, safe=False, status=200)
+
+
+# GET order books by published_date
+def order_published_date(request):
+    books = (
+        Book.objects.select_for_update("author")
+        .prefetch_related("categories")
+        .order_by("published_date")
+    )
+
+    data = [
+        {"id": book.id, "title": book.title, "price": str(book.price)} for book in books
+    ]
