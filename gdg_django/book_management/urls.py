@@ -22,4 +22,12 @@ urlpatterns = [
     path("category/create/", views.create_category),
     path("category/<int:id>/update/", views.update_category),
     path("category/<int:id>/delete/", views.delete_category),
+    # filtering functional endpoints
+    path("books/author/<int:author_id>/", views.get_book_by_author),
+    path("books/category/<int:category_id>/", views.get_book_by_category),
+    path("books/search/?q=<title>/", views.search_book_title),
+    path("books/price-range/?min=<value>&max=<value>/", views.filter_price),
+    path("books/avilable/", views.available_books),
+    path("books/order-by-date/", views.order_published_date),
+    path("books/top-5/", views.top_five_books),
 ]

@@ -390,21 +390,25 @@ def get_book_by_category(request, category_id):
 
 # GET search books by title
 def search_book_title(request):
-    query = request.GET.get("q")
+    try:
+        query = request.GET.get("q")
 
-    books = (
-        Book.objects.select_related("author")
-        .prefetch_related("categories")
-        .filter(title__icontains=query)
-    )
-    for book in books:
-        data = [
-            {
-                "id": book.id,
-                "title": book.title,
-            }
-        ]
-    return JsonResponse(data, safe=False, status=200)
+        books = (
+            Book.objects.select_related("author")
+            .prefetch_related("categories")
+            .filter(title__icontains=query)
+        )
+        for book in books:
+            data = [
+                {
+                    "id": book.id,
+                    "title": book.title,
+                }
+            ]
+        return JsonResponse(data, safe=False, status=200)
+
+    except Book.DoesNotExist:
+        return JsonResponse({"error": "Book not found"}, status=404)
 
 
 # GET filter books with price
@@ -449,3 +453,20 @@ def order_published_date(request):
     data = [
         {"id": book.id, "title": book.title, "price": str(book.price)} for book in books
     ]
+
+    return JsonResponse(data, safe=False, status=200)
+
+
+# GET the first 5 books
+def top_five_books(request):
+    books = (
+        Book.objects.select_for_update("author")
+        .prefetch_related("categories")
+        .all()[:5]
+    )
+
+    data = [
+        {"id": book.id, "title": book.title, "price": str(book.price)} for book in books
+    ]
+
+    return JsonResponse(data, safe=False, status=200)
